@@ -1,86 +1,132 @@
-import bgMobileLight from "./assets/images/bg-mobile-light.jpg"; // Importamos la imagen
-import CrossIcon from "./components/icon/CrossIcon";
-import MoonIcom from "./components/icon/MoonIcom";
+import { useState, useEffect } from "react";
+import bgMobileLight from "./assets/images/bg-mobile-light.jpg";
+import bgMobileDark from "./assets/images/bg-mobile-dark.jpg";
+import bgDesktopLight from "./assets/images/bg-desktop-light.jpg";
+import bgDesktopDark from "./assets/images/bg-desktop-dark.jpg";
+import Header from "./components/Header";
+import TodoComputer from "./components/TodoComputer";
+import TodoCreate from "./components/TodoCreate";
+import TodoFilter from "./components/TodoFilter";
+import TodoList from "./components/TodoList";
+
+const initialStateTodo = [
+    { id: 1, title: "Go to the gym", completed: true },
+    { id: 2, title: "Complete online JavaScript", completed: false },
+    { id: 3, title: "10 min meditation", completed: false },
+    { id: 4, title: "Complete todo app Frontend", completed: true },
+    { id: 5, title: "Complete Gym", completed: true },
+];
 
 const App = () => {
+    const [todos, setTodos] = useState(initialStateTodo);
+    const [filter, setFilter] = useState("all");
+    const [darkMode, setDarkMode] = useState(false);
+
+    useEffect(() => {
+        const storedTheme = localStorage.getItem("theme");
+        if (
+            storedTheme === "dark" ||
+            (!storedTheme &&
+                window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+            setDarkMode(true);
+            document.documentElement.classList.add("dark");
+        } else {
+            setDarkMode(false);
+            document.documentElement.classList.remove("dark");
+        }
+    }, []);
+
+    const toggleDarkMode = () => {
+        const newDarkMode = !darkMode;
+        setDarkMode(newDarkMode);
+        localStorage.setItem("theme", newDarkMode ? "dark" : "light");
+
+        if (newDarkMode) {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    };
+
+    const createTodo = (title) => {
+        if (!title.trim()) return;
+        setTodos([
+            ...todos,
+            { id: Date.now(), title: title.trim(), completed: false },
+        ]);
+    };
+
+    const removeTodo = (id) => {
+        setTodos(todos.filter((todo) => todo.id !== id));
+    };
+
+    const computerItemsLeft = todos.filter((todo) => !todo.completed).length;
+
+    const updateTodo = (id) => {
+        setTodos(
+            todos.map((todo) =>
+                todo.id === id ? { ...todo, completed: !todo.completed } : todo
+            )
+        );
+    };
+
+    const cleanComplete = () => {
+        setTodos(todos.filter((todo) => !todo.completed));
+    };
+
+    const changeFilter = (newFilter) => setFilter(newFilter);
+
+    const filteredTodos = () => {
+        switch (filter) {
+            case "active":
+                return todos.filter((todo) => !todo.completed);
+            case "completed":
+                return todos.filter((todo) => todo.completed);
+            default:
+                return todos;
+        }
+    };
+
     return (
         <div
-            className="min-h-screen bg-gray-200 bg-no-repeat bg-contain"
-            style={{ backgroundImage: `url(${bgMobileLight})` }} // Usamos style en línea
+            className={`min-h-screen bg-gray-300 bg-no-repeat bg-cover ${
+                darkMode ? "dark bg-gray-900" : ""
+            }`}
+            style={{
+                backgroundImage: `url(${
+                    darkMode
+                        ? window.innerWidth > 640
+                            ? bgDesktopDark
+                            : bgMobileDark
+                        : window.innerWidth > 640
+                          ? bgDesktopLight
+                          : bgMobileLight
+                })`,
+            }}
         >
-            <header className="container px-4 mx-auto">
-                <div className="flex justify-between">
-                    <h1 className="pt-8 text-3xl font-semibold text-white uppercase tracking-[0.3em]">
-                        Todo
-                    </h1>
-                    <button className="">
-                        <MoonIcom />
-                    </button>
-                </div>
+            <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
 
-                <form className="flex items-center gap-4 px-4 py-4 mt-8 overflow-hidden bg-white rounded-md">
-                    <span className="inline-block w-5 h-5 border-2 rounded-full"></span>
-                    <input
-                        className="w-full text-gray-400 outline-none"
-                        type="text"
-                        placeholder="Create a new todo... "
-                    />
-                </form>
-            </header>
+            <main className="container max-w-xl px-4 mx-auto mt-8">
+                <TodoCreate createTodo={createTodo} />
 
-            <main className="container px-4 mx-auto mt-8 ">
-                <div className="bg-white rounded-md [&>article]:p-4">
-                    <article className="flex gap-4 border-b border-b-gray-400">
-                        <button className="flex-none inline-block w-5 h-5 border-2 rounded-full"></button>
-                        <p className="text-gray-600 grow">
-                            complete online javascript curse in bluuweb
-                        </p>
-                        <button className="flex-none">
-                            {" "}
-                            <CrossIcon />{" "}
-                        </button>
-                    </article>
+                <TodoList
+                    todos={filteredTodos()}
+                    removeTodo={removeTodo}
+                    updateTodo={updateTodo}
+                />
 
-                    <article className="flex gap-4 border-b border-b-gray-400">
-                        <button className="flex-none inline-block w-5 h-5 border-2 rounded-full"></button>
-                        <p className="text-gray-600 grow">
-                            complete online javascript curse in bluuweb
-                        </p>
-                        <button className="flex-none">
-                            {" "}
-                            <CrossIcon />{" "}
-                        </button>
-                    </article>
+                <TodoComputer
+                    computerItemsLeft={computerItemsLeft}
+                    cleanComplete={cleanComplete}
+                />
 
-                    <article className="flex gap-4 border-b border-b-gray-400">
-                        <button className="flex-none inline-block w-5 h-5 border-2 rounded-full"></button>
-                        <p className="text-gray-600 grow">
-                            complete online javascript curse in bluuweb
-                        </p>
-                        <button className="flex-none">
-                            {" "}
-                            <CrossIcon />{" "}
-                        </button>
-                    </article>
-
-                    <section className="flex justify-between px-4 py-4">
-                        <span className="text-gray-400">5 item left</span>
-                        <button className="text-gray-400">
-                            clear complement{" "}
-                        </button>
-                    </section>
-                </div>
+                <TodoFilter changeFilter={changeFilter} filter={filter} />
             </main>
 
-            <section className="container px-4 mx-auto mt-8">
-                <div className="flex justify-center gap-4 p-3 bg-white rounded-md ">
-                    <button className="text-blue-600">All</button>
-                    <button className="hover:text-blue-600">Active</button>
-                    <button className="hover:text-blue-600">Complete</button>
-                </div>
-            </section>
-
-            <p className="mt-8 text-center">Drag and drop to render list</p>
+            <footer className="mt-8 text-center dark:text-gray-400">
+                Drag and drop to reorder list
+            </footer>
         </div>
     );
 };
