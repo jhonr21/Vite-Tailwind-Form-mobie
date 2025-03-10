@@ -1,4 +1,4 @@
-export const MoonIcom = ({ fill = "#fff" }) => {
+export const MoonIcom = ({ fill = "#000" }) => {
     return (
         <svg
             fill={fill}
