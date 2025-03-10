@@ -8,6 +8,7 @@ import TodoComputer from "./components/TodoComputer";
 import TodoCreate from "./components/TodoCreate";
 import TodoFilter from "./components/TodoFilter";
 import TodoList from "./components/TodoList";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 const initialStateTodo = [
     { id: 1, title: "Go to the gym", completed: true },
@@ -16,6 +17,14 @@ const initialStateTodo = [
     { id: 4, title: "Complete todo app Frontend", completed: true },
     { id: 5, title: "Complete Gym", completed: true },
 ];
+
+const reorder = (list, startIndex, endIndex) => {
+    const result = [...list];
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+
+    return result;
+};
 
 const App = () => {
     const [todos, setTodos] = useState(initialStateTodo);
@@ -88,6 +97,20 @@ const App = () => {
         }
     };
 
+    const handleDragEnd = (result) => {
+        const { destination, source } = result;
+        if (!destination) return;
+        if (
+            source.index === destination.index &&
+            source.droppableId === destination.droppableId
+        )
+            return;
+
+        setTodos((prevTasks) =>
+            reorder(prevTasks, source.index, destination.index)
+        );
+    };
+
     return (
         <div
             className={`min-h-screen bg-gray-300 bg-no-repeat bg-cover ${
@@ -110,11 +133,13 @@ const App = () => {
             <main className="container max-w-xl px-4 mx-auto mt-8">
                 <TodoCreate createTodo={createTodo} />
 
-                <TodoList
-                    todos={filteredTodos()}
-                    removeTodo={removeTodo}
-                    updateTodo={updateTodo}
-                />
+                <DragDropContext onDragEnd={handleDragEnd}>
+                    <TodoList
+                        todos={filteredTodos()}
+                        removeTodo={removeTodo}
+                        updateTodo={updateTodo}
+                    />
+                </DragDropContext>
 
                 <TodoComputer
                     computerItemsLeft={computerItemsLeft}
